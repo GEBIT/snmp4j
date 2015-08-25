@@ -578,7 +578,7 @@ public class USM extends SNMPv3SecurityModel {
                                               SnmpConstants.
                                               usmStatsUnknownEngineIDs);
         fireIncrementCounter(event);
-        statusInfo.setSecurityLevel(new Integer32(securityLevel));
+        statusInfo.setSecurityLevel(new Integer32(SecurityLevel.NOAUTH_NOPRIV));
         statusInfo.setErrorIndication(new VariableBinding(event.getOid(),
               event.getCurrentValue()));
         }
