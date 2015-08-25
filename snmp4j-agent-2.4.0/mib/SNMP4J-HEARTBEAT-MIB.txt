@@ -1,0 +1,287 @@
+SNMP4J-HEARTBEAT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	snmp4jAgentModules
+		FROM SNMP4J-AGENT-REG
+	DateAndTime,
+	RowStatus,
+	StorageType
+		FROM SNMPv2-TC
+	SnmpAdminString
+		FROM SNMP-FRAMEWORK-MIB
+	MODULE-IDENTITY,
+	OBJECT-TYPE,
+	NOTIFICATION-TYPE,
+	Counter64,
+	TimeTicks,
+	Unsigned32
+		FROM SNMPv2-SMI
+	OBJECT-GROUP,
+	NOTIFICATION-GROUP
+		FROM SNMPv2-CONF;
+
+snmp4jAgentHBMIB MODULE-IDENTITY
+	LAST-UPDATED "200607152105Z"	-- Jul 15, 2006 9:05:00 PM
+	ORGANIZATION "SNMP4J.org"
+	CONTACT-INFO
+		"Frank Fock
+		 Email: fock@snmp4j.org
+		 Http:  www.snmp4j.org"
+	DESCRIPTION
+		"This example MIB module demonstrates AgenPro
+		based instrumentation of a simple set of managed
+		objects to manage a heart beat generator."
+	REVISION "200607152105Z"	-- Jul 15, 2006 9:05:00 PM
+	DESCRIPTION
+		"Initial version."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2
+	::= { snmp4jAgentModules 42 2 }
+
+
+snmp4jAgentHBRefTime OBJECT-TYPE
+	SYNTAX  DateAndTime
+	MAX-ACCESS read-write
+	STATUS  current
+	DESCRIPTION
+		"The reference time for heart-beat configurations. By
+		default, the systems local time is used as reference.
+		If modified, the local system's time is not changed,
+		but an offset is calculated and saved to compute the
+		reference time."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.1
+	::= { snmp4jAgentHBObjects 1 }
+
+
+snmp4jAgentHBCtrlStartTime OBJECT-TYPE
+	SYNTAX  DateAndTime
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The time to initially start the heart-beat events.
+		If not specified, the current value of
+		snmp4jAgentHBRefTime is used.
+		If snmp4jAgentHBCtrlDelay is greater than zero,
+		the value of snmp4jAgentHBCtrlStartTime is ignored
+		as if it has not been set at all."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.2
+	::= { snmp4jAgentHBCtrlEntry 2 }
+
+
+snmp4jAgentHBCtrlMaxEvents OBJECT-TYPE
+	SYNTAX  Unsigned32
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The max events value specifies the maximum 
+		number of heartbeat events that should be 
+		generated on behalf of this configuration.
+		The default value 0 indicates no upper limit."
+	DEFVAL { 0 }
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.5
+	::= { snmp4jAgentHBCtrlEntry 5 }
+
+
+snmp4jAgentHBCtrlStorageType OBJECT-TYPE
+	SYNTAX  StorageType
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The storage type for this configuration."
+	DEFVAL { nonVolatile }
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.8
+	::= { snmp4jAgentHBCtrlEntry 8 }
+
+
+snmp4jAgentHBCtrlDelay OBJECT-TYPE
+	SYNTAX  Unsigned32
+	UNITS
+		"milliseconds"
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"Delay in milliseconds before the first heart-beat
+		event is to be generated on behalf of this configuration.
+		If this value is zero then snmp4jAgentHBCtrlStartTime
+		has to be set to a date and time in the future in order to
+		be able to activate the"
+	DEFVAL { 1000 }
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.3
+	::= { snmp4jAgentHBCtrlEntry 3 }
+
+
+snmp4jAgentHBCtrlName OBJECT-TYPE
+	SYNTAX  SnmpAdminString (SIZE (1..32))
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The (unique) name of the heart-beat generator."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.1
+	::= { snmp4jAgentHBCtrlEntry 1 }
+
+
+snmp4jAgentHBCtrlEvents OBJECT-TYPE
+	SYNTAX  Counter64
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"The number of events generated on behalf of
+		this configuration since it has been last changed."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.6
+	::= { snmp4jAgentHBCtrlEntry 6 }
+
+
+snmp4jAgentHBCtrlRowStatus OBJECT-TYPE
+	SYNTAX  RowStatus
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The RowStatus column."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.9
+	::= { snmp4jAgentHBCtrlEntry 9 }
+
+
+snmp4jAgentExamples OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42
+	::= { snmp4jAgentModules 42 }
+
+-- Scalars and Tables
+--
+
+snmp4jAgentHBObjects OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1
+	::= { snmp4jAgentHBMIB 1 }
+
+snmp4jAgentHBCtrlTable OBJECT-TYPE
+	SYNTAX  SEQUENCE OF Snmp4jAgentHBCtrlEntry
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The heart-beat control table contains configurations
+		for heart-beat event generators."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2
+	::= { snmp4jAgentHBObjects 2 }
+
+
+snmp4jAgentHBCtrlEntry OBJECT-TYPE
+	SYNTAX  Snmp4jAgentHBCtrlEntry
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"An entry in the control table defines the parameters 
+		for a heart-beat event generator. A new generator
+		(row) is created by setting its RowStatus column
+		to createAndWait(5) or createAndGo(4)."
+	INDEX {
+ 		IMPLIED snmp4jAgentHBCtrlName }
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1
+	::= { snmp4jAgentHBCtrlTable 1 }
+
+
+Snmp4jAgentHBCtrlEntry ::= SEQUENCE {
+
+	snmp4jAgentHBCtrlName        SnmpAdminString,
+	snmp4jAgentHBCtrlStartTime   DateAndTime,
+	snmp4jAgentHBCtrlDelay       Unsigned32,
+	snmp4jAgentHBCtrlPeriod      Unsigned32,
+	snmp4jAgentHBCtrlMaxEvents   Unsigned32,
+	snmp4jAgentHBCtrlEvents      Counter64,
+	snmp4jAgentHBCtrlLastChange  TimeTicks,
+	snmp4jAgentHBCtrlStorageType StorageType,
+	snmp4jAgentHBCtrlRowStatus   RowStatus }
+
+
+snmp4jAgentHBCtrlPeriod OBJECT-TYPE
+	SYNTAX  Unsigned32
+	UNITS
+		"milli seconds"
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The time in milli-seconds between successive
+		generations of the heart-beat event."
+	DEFVAL { 60000 }
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.4
+	::= { snmp4jAgentHBCtrlEntry 4 }
+
+
+snmp4jAgentHBCtrlLastChange OBJECT-TYPE
+	SYNTAX  TimeTicks
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"The value of sysUpTime when this configuratio
+		entry has been changed. If it had been changed 
+		before the last system restart then zero will be
+		returned."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.1.2.1.7
+	::= { snmp4jAgentHBCtrlEntry 7 }
+
+
+-- Notification Types
+--
+
+snmp4jAgentHBEvents OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.2
+	::= { snmp4jAgentHBMIB 2 }
+
+snmp4jAgentHBEventsID OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.2.0
+	::= { snmp4jAgentHBEvents 0 }
+
+-- Conformance
+--
+
+snmp4jAgentHBConf OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.3
+	::= { snmp4jAgentHBMIB 3 }
+
+-- Groups
+--
+
+snmp4jAgentHBGroups OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.3.1
+	::= { snmp4jAgentHBConf 1 }
+
+-- Compliance
+--
+
+snmp4jAgentHBCompls OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.3.2
+	::= { snmp4jAgentHBConf 2 }
+
+
+snmp4jAgentHBEvent NOTIFICATION-TYPE
+	OBJECTS {
+		snmp4jAgentHBCtrlEvents}
+	STATUS  current
+	DESCRIPTION
+		"The heart-beat event fired by a heart-beat generator."
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.2.0.1
+	::= { snmp4jAgentHBEventsID 1 }
+
+snmp4jAgentHBBasicGroup OBJECT-GROUP
+	OBJECTS {
+		snmp4jAgentHBRefTime,
+		snmp4jAgentHBCtrlStorageType,
+		snmp4jAgentHBCtrlStartTime,
+		snmp4jAgentHBCtrlRowStatus,
+		snmp4jAgentHBCtrlPeriod,
+		snmp4jAgentHBCtrlMaxEvents,
+		snmp4jAgentHBCtrlLastChange,
+		snmp4jAgentHBCtrlEvents,
+		snmp4jAgentHBCtrlDelay }
+	STATUS  current
+	DESCRIPTION
+		""
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.3.1.1
+	::= { snmp4jAgentHBGroups 1 }
+
+snmp4jAgentHBBasicEvents NOTIFICATION-GROUP
+	NOTIFICATIONS {
+		snmp4jAgentHBEvent }
+	STATUS  current
+	DESCRIPTION ""
+	-- 1.3.6.1.4.1.4976.10.1.1.42.2.3.1.2
+	::= { snmp4jAgentHBGroups 2 }
+
+END

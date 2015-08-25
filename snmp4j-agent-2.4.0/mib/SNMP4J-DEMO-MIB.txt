@@ -1,0 +1,268 @@
+SNMP4J-DEMO-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	snmp4jAgentModules
+		FROM SNMP4J-AGENT-REG
+	DisplayString,
+	TimeStamp,
+	RowStatus,
+	StorageType
+		FROM SNMPv2-TC
+	MODULE-IDENTITY,
+	OBJECT-TYPE,
+	NOTIFICATION-TYPE,
+	Counter32,
+	Integer32
+		FROM SNMPv2-SMI
+	OBJECT-GROUP,
+	NOTIFICATION-GROUP
+		FROM SNMPv2-CONF;
+
+snmp4jDemoMIB MODULE-IDENTITY
+	LAST-UPDATED "200804211754Z"	-- Apr 21, 2008 5:54:00 PM
+	ORGANIZATION "SNMP4J.org"
+	CONTACT-INFO
+		"Frank Fock
+		Email: info@snmp4j.org"
+	DESCRIPTION
+		"This module defines a small set of MIB objects to
+		illustrate their instrumentation using SNMP4J-Agent
+		API."
+	REVISION "200804211754Z"	-- Apr 21, 2008 5:54:00 PM
+	DESCRIPTION
+		"Initial version."
+	-- 1.3.6.1.4.1.4976.10.1.1.20
+	::= { snmp4jAgentModules 20 }
+
+
+-- Scalars and Tables
+--
+
+snmp4jDemoObjects OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1
+	::= { snmp4jDemoMIB 1 }
+
+snmp4jDemoScalar OBJECT-TYPE
+	SYNTAX  DisplayString
+	MAX-ACCESS read-write
+	STATUS  current
+	DESCRIPTION
+		"This is a scalar object with a display string value."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.1
+	::= { snmp4jDemoObjects 1 }
+
+
+snmp4jDemoTable OBJECT-TYPE
+	SYNTAX  SEQUENCE OF Snmp4jDemoEntry
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"A simple table with a dual index consisting of an
+		integer and a string sub-index."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2
+	::= { snmp4jDemoObjects 2 }
+
+
+snmp4jDemoEntry OBJECT-TYPE
+	SYNTAX  Snmp4jDemoEntry
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"A row in this table has an integer and  string value.
+		The timestamp value indicates the last modification
+		of the row and the counter value indicates the number
+		of changes since the last restart.
+		The RowStatus column is used to create and delete
+		rows whereas the StorageType column controls the
+		row's persistency."
+	INDEX {
+		snmp4jDemoEntryIndex1,
+		IMPLIED snmp4jDemoEntryIndex2 }
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1
+	::= { snmp4jDemoTable 1 }
+
+
+Snmp4jDemoEntry ::= SEQUENCE {
+
+	snmp4jDemoEntryIndex1          INTEGER,
+	snmp4jDemoEntryIndex2          DisplayString,
+	snmp4jDemoEntryCol1            Integer32,
+	snmp4jDemoEntryCol2            OCTET STRING,
+	snmp4jDemoEntryCol3            Counter32,
+	snmp4jDemoEntryCol4            TimeStamp,
+	snmp4jDemoEntryCol5            StorageType,
+	snmp4jDemoEntryCol6            RowStatus,
+	snmp4jDemoTableRowModification INTEGER }
+
+
+snmp4jDemoEntryIndex1 OBJECT-TYPE
+	SYNTAX  INTEGER (0..1000000)
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The integer portion of the demo table index."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.1
+	::= { snmp4jDemoEntry 1 }
+
+
+snmp4jDemoEntryIndex2 OBJECT-TYPE
+	SYNTAX  DisplayString (SIZE (1..32))
+	MAX-ACCESS not-accessible
+	STATUS  current
+	DESCRIPTION
+		"The string portion of the demo table index."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.2
+	::= { snmp4jDemoEntry 2 }
+
+
+snmp4jDemoEntryCol1 OBJECT-TYPE
+	SYNTAX  Integer32
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"An arbitrary integer value, the default is 1."
+	DEFVAL { 1 }
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.3
+	::= { snmp4jDemoEntry 3 }
+
+
+snmp4jDemoEntryCol2 OBJECT-TYPE
+	SYNTAX  OCTET STRING (SIZE (0..128))
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The string column, default is the empty string."
+	DEFVAL { "" }
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.4
+	::= { snmp4jDemoEntry 4 }
+
+
+snmp4jDemoEntryCol3 OBJECT-TYPE
+	SYNTAX  Counter32
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"The row's change counter which starts at one after
+		row creation."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.5
+	::= { snmp4jDemoEntry 5 }
+
+
+snmp4jDemoEntryCol4 OBJECT-TYPE
+	SYNTAX  TimeStamp
+	MAX-ACCESS read-only
+	STATUS  current
+	DESCRIPTION
+		"The timestamp value when the content of this row
+		was changed last."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.6
+	::= { snmp4jDemoEntry 6 }
+
+
+snmp4jDemoEntryCol5 OBJECT-TYPE
+	SYNTAX  StorageType
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The storage type of this row."
+	DEFVAL { volatile }
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.7
+	::= { snmp4jDemoEntry 7 }
+
+
+snmp4jDemoEntryCol6 OBJECT-TYPE
+	SYNTAX  RowStatus
+	MAX-ACCESS read-create
+	STATUS  current
+	DESCRIPTION
+		"The row status of this row. Set this value to 
+		createAndWait(5) or createAndGo(4) to create
+		an new row. Set it to destroy(6) to delete it."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.8
+	::= { snmp4jDemoEntry 8 }
+
+
+snmp4jDemoTableRowModification OBJECT-TYPE
+	SYNTAX  INTEGER {
+			created(1),
+			updated(2),
+			deleted(3) }
+	MAX-ACCESS accessible-for-notify
+	STATUS  current
+	DESCRIPTION
+		"This object specifies the modification type of a demo
+		table row change."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.1.2.1.9
+	::= { snmp4jDemoEntry 9 }
+
+
+-- Notification Types
+--
+
+snmp4jDemoEvents OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.2
+	::= { snmp4jDemoMIB 2 }
+
+snmp4jDemoEventSNMPv1Node OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.2.0
+	::= { snmp4jDemoEvents 0 }
+
+-- Conformance
+--
+
+snmp4jDemoConf OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.3
+	::= { snmp4jDemoMIB 3 }
+
+-- Groups
+--
+
+snmp4jDemoGroups OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.3.1
+	::= { snmp4jDemoConf 1 }
+
+-- Compliance
+--
+
+snmp4jDemoCompls OBJECT IDENTIFIER 
+	-- 1.3.6.1.4.1.4976.10.1.1.20.3.2
+	::= { snmp4jDemoConf 2 }
+
+
+snmp4jDemoEvent NOTIFICATION-TYPE
+	OBJECTS {
+		snmp4jDemoEntryCol3,
+		snmp4jDemoTableRowModification}
+	STATUS  current
+	DESCRIPTION
+		"The demo event is fired when the demo table is
+		modified."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.2.0.1
+	::= { snmp4jDemoEventSNMPv1Node 1 }
+
+snmp4jDemoBasicGroup OBJECT-GROUP
+	OBJECTS {
+		snmp4jDemoScalar,
+		snmp4jDemoEntryCol1,
+		snmp4jDemoEntryCol2,
+		snmp4jDemoEntryCol3,
+		snmp4jDemoEntryCol4,
+		snmp4jDemoEntryCol5,
+		snmp4jDemoEntryCol6,
+		snmp4jDemoTableRowModification }
+	STATUS  current
+	DESCRIPTION
+		"Basic objects."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.3.1.1
+	::= { snmp4jDemoGroups 1 }
+
+snmp4jDemoBasicEvents NOTIFICATION-GROUP
+	NOTIFICATIONS {
+		snmp4jDemoEvent }
+	STATUS  current
+	DESCRIPTION
+		"Basic notifications."
+	-- 1.3.6.1.4.1.4976.10.1.1.20.3.1.2
+	::= { snmp4jDemoGroups 2 }
+
+END
